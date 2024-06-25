@@ -12,8 +12,8 @@ task = conn.create_task("Photogrammetry - Meshroom", "meshroom", 1)
 
 
 # Create the input bucket and synchronize with a local folder
-# Insert a local folder directory
 input_bucket = conn.retrieve_or_create_bucket("meshroom-in")
+# Insert a local folder directory
 input_bucket.sync_directory("dataset")
 
 # Attach the bucket to the task
