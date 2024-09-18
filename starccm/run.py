@@ -5,12 +5,12 @@ import qarnot
 # =============================== Setup Variables =============================== #
 # Change the following if needed
 
-CLIENT_TOKEN="<<<YOUR_PRIVATE_TOKEN>>>"
+CLIENT_TOKEN="<YOUR_PRIVATE_TOKEN>"
 NB_INSTANCES = 2
 TASK_NAME='RUN SAMPLE - STARCCM'
 
-STARCCM_LICENSE_PORT='<<<YOUR_LICENSE_PORT>>>'
-STARCCM_LICENSE_IP='<<<YOUR_LICENSE_IP>>>'
+STARCCM_LICENSE_PORT='<YOUR_LICENSE_PORT>'
+STARCCM_LICENSE_IP='<YOUR_LICENSE_IP>'
 
 STARCCM_CMD="starccm+ -power -batch run -mpi openmpi4 -machinefile /job/mpihosts cylindre_complet_extrusion_both_demi_DP_reconstruit_init.sim"
 
