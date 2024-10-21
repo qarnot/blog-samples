@@ -11,6 +11,8 @@ conn = qarnot.connection.Connection(client_token="MY_SECRET_TOKEN")
 
 # -------------------------------------------------------------------------- #
 NB_NODES = 2
+DOCKER_SSH = '<MY_SSH_KEY>'
+OPENFOAM_VERSION = "v2106"
 # -------------------------------------------------------------------------- #
 
 # Create a task
@@ -29,8 +31,8 @@ task.resources.append(input_bucket)
 # Create a result bucket and attach it to the task
 task.results = conn.create_bucket("openfoam-out")
 
-task.constants['DOCKER_TAG'] = "v2106"
-task.constants['DOCKER_SSH'] = '<MY_SSH_KEY>'
+task.constants['DOCKER_TAG'] = OPENFOAM_VERSION
+task.constants['DOCKER_SSH'] = DOCKER_SSH
 
 # Define checkpoint
 task.snapshot(60)
