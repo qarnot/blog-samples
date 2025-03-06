@@ -1,4 +1,4 @@
-"""Script to run a STAR-CCM sample computation on Qarnot cloud"""
+"""Script to run a STAR-CCM sample with SSH connectivity on Qarnot cloud"""
 
 import qarnot
 from qarnot.scheduling_type import OnDemandScheduling
@@ -6,7 +6,8 @@ from qarnot.scheduling_type import OnDemandScheduling
 # =============================== Setup Variables =============================== #
 # To change
 CLIENT_TOKEN="<MY_SECRET_TOKEN>"
-PROFIL="<YOUR_PROFILE>"
+PROFIL="<YOUR_SSH_PROFILE>"
+SSH_PUBLIC_KEY=""
 
 # If needed
 TASK_NAME='RUN SAMPLE - STARCCM'
@@ -38,10 +39,14 @@ task.results = output_bucket
 # Configure task parameters
 task.constants['STARCCM_CMD'] = STARCCM_CMD
 task.constants['DOCKER_TAG'] = STARCCM_VERSION
+task.constants['DOCKER_SSH'] = SSH_PUBLIC_KEY
 
 # Optional parameters
+# Set to 'true' to keep cluster alive once your simulation is done.
+task.constants['NO_EXIT'] = "false" 
+
 # Number of processes per node in the mpihost file, e.g. "26" out of 28 cores.
-# task.constants['SETUP_CLUSTER_NB_SLOTS'] = "26"
+task.constants['SETUP_CLUSTER_NB_SLOTS'] = "26"
 
 # Define interval time in seconds when your simulation will be saved to your bucket.
 # task.snapshot(900)
@@ -50,3 +55,4 @@ task.constants['DOCKER_TAG'] = STARCCM_VERSION
 # task.scheduling_type=OnDemandScheduling()
 
 task.submit()
+
