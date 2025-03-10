@@ -6,7 +6,7 @@ from qarnot.scheduling_type import OnDemandScheduling
 # =============================== Setup Variables =============================== #
 # To change
 CLIENT_TOKEN="<MY_SECRET_TOKEN>"
-PROFIL="<YOUR_PROFILE>"
+PROFILE="<YOUR_PROFILE>"
 
 # If needed
 TASK_NAME='RUN SAMPLE - STARCCM'
@@ -24,7 +24,7 @@ STARCCM_CMD="starccm+ -power -batch run cylindre_complet_extrusion_both_demi_DP_
 conn = qarnot.connection.Connection(client_token=CLIENT_TOKEN)
 
 # Create task
-task = conn.create_task(TASK_NAME, PROFIL, NB_INSTANCES)
+task = conn.create_task(TASK_NAME, PROFILE, NB_INSTANCES)
 
 # Create the input bucket and synchronize with a local folder
 input_bucket = conn.create_bucket('starccm-in')
