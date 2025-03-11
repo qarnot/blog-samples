@@ -5,19 +5,19 @@ from qarnot.scheduling_type import OnDemandScheduling
 
 # =============================== Setup Variables =============================== #
 # To change
-CLIENT_TOKEN="<MY_SECRET_TOKEN>"
-PROFILE="<YOUR_SSH_PROFILE>"
-SSH_PUBLIC_KEY=""
+CLIENT_TOKEN="MY_SECRET_TOKEN"
+PROFILE="YOUR_SSH_PROFILE"
+SSH_PUBLIC_KEY="YOUR_SSH_PUBLIC_KEY"
 
 # If needed
-TASK_NAME='RUN SAMPLE - STARCCM'
+TASK_NAME='RUN SAMPLE SSH - STARCCM'
 STARCCM_VERSION="19.04.009"
 NB_INSTANCES = 1
-STARCCM_CMD="starccm+ -power -batch run cylindre_complet_extrusion_both_demi_DP_reconstruit_init.sim"
+STARCCM_CMD="starccm+ -power -batch run cylindre_complet_extrusion_both_demi_DP_reconstruit_init_c4056f43d7.sim"
 
 # Optional - Multi node simulation
 # NB_INSTANCES = 2
-# STARCCM_CMD="starccm+ -power -batch -mpi openmpi -mpiflags \"--mca btl ^openib,tcp --mca pml ucx --mca osc ucx\" -machinefile /job/mpihosts run cylindre_complet_extrusion_both_demi_DP_reconstruit_init.sim"
+# STARCCM_CMD="starccm+ -power -batch -mpi openmpi -mpiflags \"--mca btl ^openib,tcp --mca pml ucx --mca osc ucx\" -machinefile /job/mpihosts run cylindre_complet_extrusion_both_demi_DP_reconstruit_init_c4056f43d7.sim"
 
 # =============================================================================== #
 
@@ -46,7 +46,7 @@ task.constants['DOCKER_SSH'] = SSH_PUBLIC_KEY
 task.constants['NO_EXIT'] = "false" 
 
 # Number of processes per node in the mpihost file, e.g. "26" out of 28 cores.
-task.constants['SETUP_CLUSTER_NB_SLOTS'] = "26"
+# task.constants['SETUP_CLUSTER_NB_SLOTS'] = "26"
 
 # Define interval time in seconds when your simulation will be saved to your bucket.
 # task.snapshot(900)
