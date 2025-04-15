@@ -40,11 +40,14 @@ task.constants['STARCCM_CMD'] = STARCCM_CMD
 task.constants['DOCKER_TAG'] = STARCCM_VERSION
 
 # Optional parameters
+# Starccm precision to use if supported for the version you use.
+task.constants['STARCCM_PRECICION'] = "mixed"
+
 # Number of processes per node in the mpihost file, e.g. "26" out of 28 cores.
 # task.constants['SETUP_CLUSTER_NB_SLOTS'] = "26"
 
 # Define interval time in seconds when your simulation will be saved to your bucket.
-# task.snapshot(900)
+task.snapshot(900)
 
 # OnDemand setup
 # task.scheduling_type=OnDemandScheduling()
@@ -54,6 +57,7 @@ task.submit()
 # ---------- Optional ----------
 
 OUTPUT_DIR="cylindre-out"
+task.submit()
 
 # The following will download result to the OUTPUT_DIR 
 # It will also print the state of the task to your console
@@ -66,6 +70,7 @@ while not SSH_TUNNELING_DONE:
 
     # Wait for the task to be FullyExecuting
     if task.state == 'Success':
+        print(f"** {LAST_STATE}")
         task.download_results(OUTPUT_DIR, True)
         SSH_TUNNELING_DONE = True
 
