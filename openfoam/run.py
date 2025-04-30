@@ -38,11 +38,11 @@ task.constants['DOCKER_TAG'] = OPENFOAM_VERSION
 # Optional, define interval time in seconds when your simulation will be saved to your bucket.
 task.snapshot(900)
 
-# Optionnal, blacklist processor directories with regex
+# Optional, blacklist processor directories with regex
 task.snapshot_blacklist = r"processor\d+" # Set snapshots blacklist
 task.results_blacklist = r"processor\d+" # Set results blacklist
 
-# Optionnal, whitelist only log. files with regex
+# Optional, whitelist only log. files with regex
 # task.snapshot_whitelist = r"log\..*" # Set snapshots whitelist
 # task.results_whitelist = r"log\..*" # Set results whitelist
 
