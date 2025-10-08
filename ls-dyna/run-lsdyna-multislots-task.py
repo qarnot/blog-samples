@@ -16,7 +16,7 @@ INPUT_BUCKET_NAME =  f"{DIR_TO_SYNC}-in"
 OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
 TASK_NAME = f"RUN test on LS-DYNA pool - {DIR_TO_SYNC}" 
 
-DYNA_CMD = "mpiexec -np 1 lsdyna_sp_mpp.e i=EXP_SC_DROP.key memory=1200M" # More info bellow
+LSDYNA_CMD = "mpiexec -np 1 lsdyna_sp_mpp.e i=EXP_SC_DROP.key memory=1200M" # More info bellow
 
 # Copy these settings from the pool parameters. Do not change otherwise.
 NB_INSTANCES = 1
@@ -53,7 +53,7 @@ task.results = output_bucket
 ## SMP : lsdyna_sp.e i=input.k ncpu=1 memory=1200M
 ## MPP : mpiexec -np 1 lsdyna_sp_mpp.e i=input.k memory=1200M
 ## Leave it empty to launch your simulaiton through lsrun on web desktop 
-task.constants["MECHANICAL_CMD"] = DYNA_CMD
+task.constants["LSDYNA_CMD"] = LSDYNA_CMD
 
 # Optional parameters
 # Number of cores perslots e.g. "13" out of 28 cores. Default value is NBCORE / SLOTS
