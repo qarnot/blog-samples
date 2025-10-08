@@ -49,7 +49,7 @@ task.constants['DOCKER_TAG'] = ANSYS_VERSION
 ## SMP : lsdyna_sp.e i=input.k ncpu=1 memory=1200M
 ## MPP : mpiexec -np 1 lsdyna_sp_mpp.e i=input.k memory=1200M
 ## Leave it empty to launch your simulaiton through lsrun on web desktop 
-task.constants["MECHANICAL_CMD"] = DYNA_CMD
+task.constants["LSDYNA_CMD"] = DYNA_CMD
 
 # VNC - set to tru to enable desktop visualization
 task.constants["VNC"] = "true"
