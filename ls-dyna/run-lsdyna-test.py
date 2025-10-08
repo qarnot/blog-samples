@@ -20,7 +20,7 @@ INPUT_BUCKET_NAME =  f"{DIR_TO_SYNC}-in"
 OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
 TASK_NAME = f"RUN test LS-DYNA - {DIR_TO_SYNC}" 
 
-DYNA_CMD = "mpiexec -np 1 lsdyna_sp_mpp.e i=EXP_SC_DROP.key memory=1200M" # More info bellow
+LSDYNA_CMD = "mpiexec -np 1 lsdyna_sp_mpp.e i=EXP_SC_DROP.key memory=1200M" # More info bellow
 
 # =============================================================================== #
 
@@ -49,7 +49,7 @@ task.constants['DOCKER_TAG'] = ANSYS_VERSION
 ## SMP : lsdyna_sp.e i=input.k ncpu=1 memory=1200M
 ## MPP : mpiexec -np 1 lsdyna_sp_mpp.e i=input.k memory=1200M
 ## Leave it empty to launch your simulaiton through lsrun on web desktop 
-task.constants["LSDYNA_CMD"] = DYNA_CMD
+task.constants["LSDYNA_CMD"] = LSDYNA_CMD
 
 # VNC - set to tru to enable desktop visualization
 task.constants["VNC"] = "true"
