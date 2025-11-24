@@ -42,6 +42,9 @@ task.constants['DOCKER_TAG'] = STARCCM_VERSION
 task.constants['DOCKER_SSH'] = SSH_PUBLIC_KEY
 
 # Optional parameters
+# Starccm precision to use if supported for the version you use.
+task.constants['STARCCM_PRECICION'] = "mixed"
+
 # Set to 'true' to keep cluster alive once your simulation is done.
 task.constants['NO_EXIT'] = "false" 
 
