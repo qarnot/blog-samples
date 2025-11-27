@@ -5,21 +5,14 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-import qarnot
-from qarnot.scheduling_type import OnDemandScheduling, FlexScheduling, ReservedScheduling
-import os
-
-from dotenv import load_dotenv
-load_dotenv()
-
 # =============================== SETUP VARIABLES =============================== #
 
 # =============================== Mandatory Variables =============================== #
 
-CLIENT_TOKEN="MY_SECRET_TOKEN"                 # To retrieve on your HPC or Tasq account
-CLIENT_TOKEN=os.getenv("QARNOT_TOKEN")         # Using an env variable
+CLIENT_TOKEN=os.getenv("QARNOT_TOKEN")         # If your token is in a .env. You can also execute, in your terminal, 'export QARNOT_TOKEN='your_token''.
 PROFILE="YOUR_PROFILE_SSH"                     # Example : 'altair-hyperworks-qarnot-vnc-wan'
 SSH_PUBLIC_KEY="YOUR_SSH_PUBLIC_KEY"
+#ALM_HHWU_TOKEN='YOUR_ALM_HHWU_TOKEN'           # If your licence is hosted on Altair-One 
 
 NB_INSTANCES = 2                               # Number of instances in your cluster.
 ALTAIR_VERSION="2024.1"                        # Altair Hyperwork 2024.1 
@@ -29,11 +22,11 @@ INPUT_BUCKET_NAME =  f"{DIR_TO_SYNC}-in"
 OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
 TASK_NAME = f"RUN test Altair - {DIR_TO_SYNC}" 
 
-INSTANCE_TYPE = 'Xeon'                         # Xeon is the default choice. Otherwise, put 'Epyc'.
-if INSTANCE_TYPE == 'Xeon':
+INSTANCE_TYPE = 'xeon'                         # xeon is the default choice. Otherwise, put 'epyc'.
+if INSTANCE_TYPE == 'xeon':
     SETUP_CLUSTER_NB_SLOTS = 26
     instance_type="28c-128g-intel-dual-xeon2680v4-ssd" # Number of processes per node in the mpihost file. "24" is optimal for xeon.
-elif INSTANCE_TYPE == 'EPYC':
+elif INSTANCE_TYPE == 'epyc':
     SETUP_CLUSTER_NB_SLOTS = 94                   # Number of processes per node in the mpihost file. "94" is optimal for xeon.       
     instance_type = "96c-512g-amd-epyc9654-ssd"
 
@@ -58,6 +51,9 @@ POST_PROCESSING_CMD = ""                       # Optional : Post processing comm
 # Create a connection, from which all other objects will be derived
 conn = qarnot.connection.Connection(client_token=CLIENT_TOKEN)
 
+# Insert your Altair One token to access your licence, if applicable
+#task.constants['ALM_HHWU_TOKEN'] = ALM_HHWU_TOKEN
+
 # Print available profiles with you account
 avail_profile = [profile for profile in conn.profiles_names() if 'altair' in profile]
 print(f'Available profiles for your account : {avail_profile}')
@@ -74,9 +70,9 @@ task.resources.append(input_bucket)
 output_bucket = conn.create_bucket(OUTPUT_BUCKET_NAME)
 task.results = output_bucket
 
-## Historically, at Qarnot, the Altair Hyperworks Suite was named "Altair Mechanical" at Qarnot. We kept the variable value, but don't worry - It is Altair Hyperworks!
-task.constants["ALTAIR_MECHA_CMD"] = ALTAIR_CMD
-task.constants['DOCKER_TAG'] = ALTAIR_VERSION
+# Specify Altair version, SSH, number of cores per node, etc. 
+task.constants['DOCKER_TAG'] = ALTAIR_VERSION 
+task.constants['DOCKER_SSH'] = SSH_PUBLIC_KEY
 task.constants["SETUP_CLUSTER_NB_SLOTS"] = SETUP_CLUSTER_NB_SLOTS
 task.hardware_constraints = [qarnot.hardware_constraint.SpecificHardware(instance_type)]
 
