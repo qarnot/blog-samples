@@ -83,9 +83,10 @@ task.scheduling_type=OnDemandScheduling()
 # task.targeted_reserved_machine_key = instance_type      # Uncomment if your company has reserved nodes
 
 
+
 # =============================== Optional Configuration =============================== #
 
-#task.snapshot(50)
+#task.snapshot(1800)                                     # Define interval time in seconds when /job will be saved to your bucket.
 #task.snapshots_whitelist  = SYNC_FILTER
 #task.results_whitelist  = OUTPUT_FILTER
 
@@ -106,3 +107,23 @@ task.scheduling_type=OnDemandScheduling()
 
 print('Submitting task on Qarnot')
 task.submit()
+
+# The following will download result to the OUTPUT_DIR 
+# It will also print the state of the task to your console
+LAST_STATE = ''
+SSH_TUNNELING_DONE = False
+while not SSH_TUNNELING_DONE:
+    if task.state != LAST_STATE:
+        LAST_STATE = task.state
+        print(f"** {LAST_STATE}")
+
+    # Wait for the task to be FullyExecuting
+    if task.state == 'Success':
+        print(f"** {LAST_STATE}")
+        task.download_results(OUTPUT_DIR, True)
+        SSH_TUNNELING_DONE = True
+
+    # Display errors on failure
+    if task.state == 'Failure':
+        print(f"** Errors: {task.errors[0]}")
+        SSH_TUNNELING_DONE = True
