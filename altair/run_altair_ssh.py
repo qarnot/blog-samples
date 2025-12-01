@@ -27,7 +27,7 @@ if INSTANCE_TYPE == 'xeon':
     SETUP_CLUSTER_NB_SLOTS = 26
     instance_type="28c-128g-intel-dual-xeon2680v4-ssd" # Number of processes per node in the mpihost file. "24" is optimal for xeon.
 elif INSTANCE_TYPE == 'epyc':
-    SETUP_CLUSTER_NB_SLOTS = 94                   # Number of processes per node in the mpihost file. "94" is optimal for xeon.       
+    SETUP_CLUSTER_NB_SLOTS = 94                   # Number of processes per node in the mpihost file. "94" is optimal for epyc.       
     instance_type = "96c-512g-amd-epyc9654-ssd"
 
 # =============================== Optional Variables =============================== #
@@ -85,8 +85,9 @@ task.scheduling_type=OnDemandScheduling()
 
 # =============================== Optional Configuration =============================== #
 
-#task.results_whitelist  = OUTPUT_FILTER
+#task.snapshot(50)
 #task.snapshots_whitelist  = SYNC_FILTER
+#task.results_whitelist  = OUTPUT_FILTER
 
 #task.constants['POST_PROCESSING_CMD'] = POST_PROCESSING_CMD
 #task.constants['USE_SIMULATION_MAXIMUM_EXECUTION_TIME'] = USE_MAX_EXEC_TIME
@@ -103,6 +104,7 @@ task.scheduling_type=OnDemandScheduling()
 
 # =============================== LAUNCH YOUR TASK ! =============================== #
 
+print('Submitting task on Qarnot')
 task.submit()
 
 
