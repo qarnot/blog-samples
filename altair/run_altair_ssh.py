@@ -112,8 +112,8 @@ task.scheduling_type=OnDemandScheduling()
 print('Submitting task on Qarnot')
 task.submit()
 
-# The following will download result to the OUTPUT_DIR 
-# It will also print the state of the task to your console
+# The following will print the state of the task to your console
+# It will also print the command to connect through ssh to the task when it's ready
 LAST_STATE = ''
 SSH_TUNNELING_DONE = False
 while not SSH_TUNNELING_DONE:
@@ -122,18 +122,30 @@ while not SSH_TUNNELING_DONE:
         print(f"** {LAST_STATE}")
 
     # Wait for the task to be FullyExecuting
-    if task.state == 'Success':
-        print(f"** {LAST_STATE}")
-        task.download_results(OUTPUT_DIR, True)
-        SSH_TUNNELING_DONE = True
+    if task.state == 'FullyExecuting':
+        # If the ssh connexion was not done yet and the list active_forward is available (len!=0)
+        forward_list = task.status.running_instances_info.per_running_instance_info[0].active_forward
+        if not SSH_TUNNELING_DONE and len(forward_list) != 0:
+            ssh_forward_port = forward_list[0].forwarder_port
+            ssh_forward_host = forward_list[0].forwarder_host
+            cmd = f"ssh -o StrictHostKeyChecking=no root@{ssh_forward_host} -p {ssh_forward_port}"
+            print(cmd)
+            SSH_TUNNELING_DONE = True
 
     # Display errors on failure
     if task.state == 'Failure':
         print(f"** Errors: {task.errors[0]}")
         SSH_TUNNELING_DONE = True
 
+# =============================== DOWNLOAD RESULTS =============================== #
 
-
+# Download results when "Success" state is reached
+SUCCESS = False
+while not SUCCESS:
+    # Wait for the task to be FullyExecuting
+    if task.state == 'Success':
+        task.download_results(OUTPUT_BUCKET_NAME, True)
+        SUCCESS = True
 
 
 

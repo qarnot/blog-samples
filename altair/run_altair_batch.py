@@ -132,3 +132,13 @@ while not SSH_TUNNELING_DONE:
     if task.state == 'Failure':
         print(f"** Errors: {task.errors[0]}")
         SSH_TUNNELING_DONE = True
+
+# =============================== DOWNLOAD RESULTS =============================== #
+
+# Download results when "Success" state is reached
+SUCCESS = False
+while not SUCCESS:
+    # Wait for the task to be FullyExecuting
+    if task.state == 'Success':
+        task.download_results(OUTPUT_BUCKET_NAME, True)
+        SUCCESS = True

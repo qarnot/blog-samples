@@ -26,7 +26,7 @@ TASK_NAME = f"RUN test Altair - {DIR_TO_SYNC}"
 
 INSTANCE_TYPE = 'xeon'                         # xeon is the default choice. Otherwise, put 'epyc'.
 
-ALTAIR_CMD = f"optistruct -np {SETUP_CLUSTER_NB_SLOTS}*{NB_INSTANCES} block.fem" # Your Altair Hyperworks CMD, depending on your solver
+ALTAIR_CMD = f"optistruct -np 26*{NB_INSTANCES} block.fem" # Your Altair Hyperworks CMD, depending on your solver
 
 # =============================== TASK CONFIGURATION =============================== #
 
@@ -52,7 +52,15 @@ task.results = output_bucket
 ## Historically, at Qarnot, the Altair Hyperworks Suite was named "Altair Mechanical" at Qarnot. We kept the variable value, but don't worry - It is Altair Hyperworks!
 task.constants["ALTAIR_MECHA_CMD"] = ALTAIR_CMD
 task.constants['DOCKER_TAG'] = ALTAIR_VERSION
-task.constants["SETUP_CLUSTER_NB_SLOTS"] = SETUP_CLUSTER_NB_SLOTS
 
+# Submitting task
 print('Submitting task on Qarnot')
 task.submit()
+
+# Download results when "Success" state is reached
+SUCCESS = False
+while not SUCCESS:
+    # Wait for the task to be FullyExecuting
+    if task.state == 'Success':
+        task.download_results(OUTPUT_BUCKET_NAME, True)
+        SUCCESS = True
