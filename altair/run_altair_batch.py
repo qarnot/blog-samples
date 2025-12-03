@@ -116,8 +116,8 @@ task.submit()
 # The following will download result to the OUTPUT_DIR 
 # It will also print the state of the task to your console
 LAST_STATE = ''
-SSH_TUNNELING_DONE = False
-while not SSH_TUNNELING_DONE:
+TASK_ENDED = False
+while not TASK_ENDED:
     if task.state != LAST_STATE:
         LAST_STATE = task.state
         print(f"** {LAST_STATE}")
@@ -126,12 +126,12 @@ while not SSH_TUNNELING_DONE:
     if task.state == 'Success':
         print(f"** {LAST_STATE}")
         task.download_results(OUTPUT_DIR, True)
-        SSH_TUNNELING_DONE = True
+        TASK_ENDED = True
 
     # Display errors on failure
     if task.state == 'Failure':
         print(f"** Errors: {task.errors[0]}")
-        SSH_TUNNELING_DONE = True
+        TASK_ENDED = True
 
 # =============================== DOWNLOAD RESULTS =============================== #
 
