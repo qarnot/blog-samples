@@ -1,5 +1,5 @@
 """
-Script to launch a detailed Altair task, in SSH mode, on Qarnot's platform
+Script to launch a detailed Altair task, in Batch mode, on Qarnot's platform
 """
 
 
@@ -15,9 +15,8 @@ load_dotenv()
 # =============================== Mandatory Variables =============================== #
 
 CLIENT_TOKEN=os.getenv("QARNOT_TOKEN")         # If your token is in a .env. You can also execute, in your terminal, 'export QARNOT_TOKEN='your_token''.
-PROFILE="YOUR_PROFILE_SSH"                     # Example : 'altair-hyperworks-qarnot-vnc-wan'
-SSH_PUBLIC_KEY="YOUR_SSH_PUBLIC_KEY"
-#ALM_HHWU_TOKEN='YOUR_ALM_HHWU_TOKEN'           # If your licence is hosted on Altair-One 
+PROFILE="YOUR_PROFILE"                         # Example : 'altair-hyperworks-qarnot-vnc-wan'
+#ALM_HHWU_TOKEN='YOUR_ALM_HHWU_TOKEN'          # If your licence is hosted on Altair-One 
 
 NB_INSTANCES = 2                               # Number of instances in your cluster.
 ALTAIR_VERSION="2024.1"                        # Altair Hyperwork 2024.1 
@@ -35,19 +34,18 @@ elif INSTANCE_TYPE == 'epyc':
     SETUP_CLUSTER_NB_SLOTS = 94                   # Number of processes per node in the mpihost file. "94" is optimal for epyc.       
     instance_type = "96c-512g-amd-epyc9654-ssd"
 
+ALTAIR_CMD = f"optistruct -np {SETUP_CLUSTER_NB_SLOTS}*{NB_INSTANCES} block.fem" # Your Altair Hyperworks CMD, depending on your solver
+
 # =============================== Optional Variables =============================== #
 
-#OUTPUT_FILTER = r"(?i).*\.h3d$"                # Optional : Regex filter to select which outputfiles you want to keep. Here, an example with .h3d
-#SYNC_FILTER = OUTPUT_FILTER                    # Optional : Regex filter to select which files are copied during your snapshots
+#OUTPUT_FILTER = r"(?i).*\.h3d$"               # Optional : Regex filter to select which outputfiles you want to keep. Here, an example with .h3d
+#SYNC_FILTER = OUTPUT_FILTER                   # Optional : Regex filter to select which files are copied during your snapshots
 
 USE_MAX_EXEC_TIME = "false"                    # Optional : Set to true to activate the configuration of maximum cluster execution time. 
 MAX_EXEC_TIME = "8h"                           # Optional : Maximum cluster execution time (ex: '8h', 'h' for hours or 'd' for days) if USE_MAX_EXEC_TIME is true" 
 
 POST_PROCESSING_CMD = ""                       # Optional : Post processing command, ran after simulation if not empty.
                                                # Use '$optistruct --help' or '$radioss --help' on ssh to understand all the possible flags, or contact our team to help you optimize your case.
-
-
-
 
 # =============================== TASK CONFIGURATION =============================== #
 
@@ -63,6 +61,7 @@ conn = qarnot.connection.Connection(client_token=CLIENT_TOKEN)
 avail_profile = [profile for profile in conn.profiles_names() if 'altair' in profile]
 print(f'Available profiles for your account : {avail_profile}')
 
+
 # Create task
 task = conn.create_task(TASK_NAME, PROFILE, NB_INSTANCES)
 
@@ -75,9 +74,10 @@ task.resources.append(input_bucket)
 output_bucket = conn.create_bucket(OUTPUT_BUCKET_NAME)
 task.results = output_bucket
 
-# Specify Altair version, SSH, number of cores per node, etc. 
-task.constants['DOCKER_TAG'] = ALTAIR_VERSION 
-task.constants['DOCKER_SSH'] = SSH_PUBLIC_KEY
+# Specify Altair CMD, version, number of cores per node, etc. 
+## Historically, at Qarnot, the Altair Hyperworks Suite was named "Altair Mechanical" at Qarnot. We kept the variable value, but don't worry - It is Altair Hyperworks!
+task.constants["ALTAIR_MECHA_CMD"] = ALTAIR_CMD
+task.constants['DOCKER_TAG'] = ALTAIR_VERSION
 task.constants["SETUP_CLUSTER_NB_SLOTS"] = SETUP_CLUSTER_NB_SLOTS
 task.hardware_constraints = [qarnot.hardware_constraint.SpecificHardware(instance_type)]
 
@@ -86,6 +86,7 @@ task.scheduling_type=OnDemandScheduling()
 # task.scheduling_type=FlexScheduling()
 # task.scheduling_type=ReservedScheduling()               # If your company has reserved nodes
 # task.targeted_reserved_machine_key = instance_type      # Uncomment if your company has reserved nodes
+
 
 
 # =============================== Optional Configuration =============================== #
@@ -112,30 +113,25 @@ task.scheduling_type=OnDemandScheduling()
 print('Submitting task on Qarnot')
 task.submit()
 
-# The following will print the state of the task to your console
-# It will also print the command to connect through ssh to the task when it's ready
+# The following will download result to the OUTPUT_DIR 
+# It will also print the state of the task to your console
 LAST_STATE = ''
-SSH_TUNNELING_DONE = False
-while not SSH_TUNNELING_DONE:
+TASK_ENDED = False
+while not TASK_ENDED:
     if task.state != LAST_STATE:
         LAST_STATE = task.state
         print(f"** {LAST_STATE}")
 
     # Wait for the task to be FullyExecuting
-    if task.state == 'FullyExecuting':
-        # If the ssh connexion was not done yet and the list active_forward is available (len!=0)
-        forward_list = task.status.running_instances_info.per_running_instance_info[0].active_forward
-        if not SSH_TUNNELING_DONE and len(forward_list) != 0:
-            ssh_forward_port = forward_list[0].forwarder_port
-            ssh_forward_host = forward_list[0].forwarder_host
-            cmd = f"ssh -o StrictHostKeyChecking=no root@{ssh_forward_host} -p {ssh_forward_port}"
-            print(cmd)
-            SSH_TUNNELING_DONE = True
+    if task.state == 'Success':
+        print(f"** {LAST_STATE}")
+        task.download_results(OUTPUT_DIR, True)
+        TASK_ENDED = True
 
     # Display errors on failure
     if task.state == 'Failure':
         print(f"** Errors: {task.errors[0]}")
-        SSH_TUNNELING_DONE = True
+        TASK_ENDED = True
 
 # =============================== DOWNLOAD RESULTS =============================== #
 
@@ -146,10 +142,3 @@ while not SUCCESS:
     if task.state == 'Success':
         task.download_results(OUTPUT_BUCKET_NAME, True)
         SUCCESS = True
-
-
-
-
-
-
-
