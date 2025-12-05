@@ -1,5 +1,5 @@
 """
-Script to launch a detailed Openfoam task, in Batch mode, on Qarnot's platform
+Script to launch a detailed Openfoam task, in SSH mode, on Qarnot's platform
 """
 
 import qarnot
@@ -14,36 +14,34 @@ load_dotenv()
 # =============================== Mandatory Variables =============================== #
 
 CLIENT_TOKEN=os.getenv("QARNOT_TOKEN")         # If your token is in a .env. You can also execute, in your terminal, 'export QARNOT_TOKEN='your_token''.
-PROFILE="openfoam-ssh"                     
-SSH_PUBLIC_KEY = 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIP7g2+egsdaSKoxUXXs1jIzKIMsWxdGPDB/PmJxuio5d chloe.pilon@laptop-pf1me4p6'
-
+PROFILE="openfoam"                        
 
 NB_INSTANCES = 2                               # Number of instances in your cluster.
 OPENFOAM_VERSION="v2412"                       # Openfoam v2412
+SSH_PUBLIC_KEY="YOUR_SSH_PUBLIC_KEY"
 
-PATH_TO_DIR = '/home/chloe.pilon/Documents/BENCH/Openfoam/motorBike-38'     # Path to your model's directory
-DIR_TO_SYNC = 'motorBike-38'                    # Name for your model's directory
+DIR_TO_SYNC = 'motorBike-2'                    # Name for your model's directory
 INPUT_BUCKET_NAME =  f"{DIR_TO_SYNC}-in"    
 OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
-TASK_NAME = f"RUN test Openfoam - {DIR_TO_SYNC}"   
+TASK_NAME = f"RUN test Openfoam - {DIR_TO_SYNC}"  
 
 INSTANCE_TYPE = 'xeon'                         # xeon is the default choice. Otherwise, put 'epyc'.
 if INSTANCE_TYPE == 'xeon':
     SETUP_CLUSTER_NB_SLOTS = 26
     instance_type="28c-128g-intel-dual-xeon2680v4-ssd" # Number of processes per node in the mpihost file. "24" is optimal for xeon.
 elif INSTANCE_TYPE == 'epyc':
-    SETUP_CLUSTER_NB_SLOTS = 94                   # Number of processes per node in the mpihost file. "94" is optimal for epyc.       
+    SETUP_CLUSTER_NB_SLOTS = 94                 # Number of processes per node in the mpihost file. "94" is optimal for epyc.       
     instance_type = "96c-512g-amd-epyc9654-ssd"
 
 # =============================== Optional Variables =============================== #
 
-SNAPSHOT_FILTER = r"log\..*"                   # Optional : Regex filter to select which outputfiles you want to keep. Here, an example with filtering .log
-RESULTS_FILTER = r"log\..*"                     # Optional : Regex filter to select which files are copied during your snapshots
+SNAPSHOT_FILTER = r"processor\d+"               # Optional : Regex filter to select which outputfiles you want to keep. Here, an example with filtering .log
+RESULTS_FILTER = r"processor\d+"                # Optional : Regex filter to select which files are copied during your snapshots
 
-USE_MAX_EXEC_TIME = "true"                    # Optional : Set to true to activate the configuration of maximum cluster execution time. 
-MAX_EXEC_TIME = "8h"                           # Optional : Maximum cluster execution time (ex: '8h', 'h' for hours or 'd' for days) if USE_MAX_EXEC_TIME is true" 
+USE_MAX_EXEC_TIME = "false"                     # Optional : Set to true to activate the configuration of maximum cluster execution time. 
+MAX_EXEC_TIME = "1h"                            # Optional : Maximum cluster execution time (ex: '8h', 'h' for hours or 'd' for days) if USE_MAX_EXEC_TIME is true" 
 
-POST_PROCESSING_CMD = ""                       # NEED IN SSH ?? Optional : Post processing command, ran after simulation if not empty.
+POST_PROCESSING_CMD = ""                        # Optional : Post processing command, ran after simulation if not empty.
 
 # =============================== TASK CONFIGURATION =============================== #
 
@@ -52,13 +50,12 @@ POST_PROCESSING_CMD = ""                       # NEED IN SSH ?? Optional : Post 
 # Create a connection, from which all other objects will be derived
 conn = qarnot.connection.Connection(client_token=CLIENT_TOKEN)
 
-
 # Create task
 task = conn.create_task(TASK_NAME, PROFILE, NB_INSTANCES)
 
 # Create the input bucket and synchronize with a local folder
 input_bucket = conn.create_bucket(INPUT_BUCKET_NAME)
-input_bucket.sync_directory(PATH_TO_DIR)
+input_bucket.sync_directory(DIR_TO_SYNC)                  # Can be change with your absolue path to the directory
 task.resources.append(input_bucket)
 
 # Create a result bucket and attach it to the task
@@ -67,8 +64,8 @@ task.results = output_bucket
 
 # Specify Altair CMD, version, number of cores per node, etc. 
 ## Historically, at Qarnot, the Altair Hyperworks Suite was named "Altair Mechanical" at Qarnot. We kept the variable value, but don't worry - It is Altair Hyperworks!
-task.constants['DOCKER_TAG'] = OPENFOAM_VERSION
 task.constants['DOCKER_SSH'] = SSH_PUBLIC_KEY
+task.constants['DOCKER_TAG'] = OPENFOAM_VERSION
 task.constants["SETUP_CLUSTER_NB_SLOTS"] = SETUP_CLUSTER_NB_SLOTS
 task.hardware_constraints = [qarnot.hardware_constraint.SpecificHardware(instance_type)]
 
@@ -79,10 +76,9 @@ task.scheduling_type=OnDemandScheduling()
 # task.targeted_reserved_machine_key = instance_type      # Uncomment if your company has reserved nodes
 
 
-
 # =============================== Optional Configuration =============================== #
 
-task.snapshot(1800)                                     # Define interval time in seconds when /job will be saved to your bucket.
+task.snapshot(1800)                                       # Define interval time in seconds when /job will be saved to your bucket.
 task.snapshots_whitelist  = SNAPSHOT_FILTER
 task.results_whitelist  = RESULTS_FILTER
 
@@ -103,9 +99,6 @@ task.constants['LOCAL_FILES_COPY_REGEX'] = ""             # Filters the files to
 
 print('Submitting task on Qarnot')
 task.submit()
-
-# =============================== MONITOR/RESULTS =============================== #
-
 
 # The following will print the state of the task to your console
 # It will also print the command to connect through ssh to the task when it's ready
@@ -141,16 +134,6 @@ while not SUCCESS:
     if task.state == 'Success':
         task.download_results(OUTPUT_BUCKET_NAME, True)
         SUCCESS = True
-
-
-
-
-
-
-
-
-
-
 
 
 
