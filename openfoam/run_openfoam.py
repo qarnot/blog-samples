@@ -16,10 +16,9 @@ CLIENT_TOKEN=os.getenv("QARNOT_TOKEN")         # If your token is in a .env. You
 PROFILE="openfoam"                        
 
 NB_INSTANCES = 2                               # Number of instances in your cluster.
-OPENFOAM_VERSION="v2412"                       # Openfoam v2412
 
-PATH_TO_DIR = '/home/chloe.pilon/Documents/BENCH/Openfoam/motorBike-38'     # Path to your model's directory
-DIR_TO_SYNC = 'motorBike-38'                    # Name for your model's directory
+PATH_TO_DIR = '/home/chloe.pilon/Documents/BENCH/Openfoam/motorBike-2'     # Path to your model's directory
+DIR_TO_SYNC = 'motorBike-2'                    # Name for your model's directory
 INPUT_BUCKET_NAME =  f"{DIR_TO_SYNC}-in"    
 OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
 TASK_NAME = f"RUN test Openfoam - {DIR_TO_SYNC}" 
@@ -44,11 +43,12 @@ task.results = output_bucket
 
 # Specify Run script CMD, version, number of cores per node, etc. 
 task.constants['RUN_SCRIPT'] = OPENFOAM_CMD
-task.constants['DOCKER_TAG'] = OPENFOAM_VERSION
 
 # Submitting task
 print('Submitting and running task on Qarnot. You can go to the online platform for more interactive task monitoring. Otherwise, the results will be downloaded automatically once the task reaches Success.')
 task.submit()
+
+# =============================== MONITORING AND RESULTS =============================== #
 
 # Download results when "Success" state is reached
 SUCCESS = False
