@@ -46,8 +46,8 @@ task.results = output_bucket
 task.constants["STARCCM_CMD"] = STARCCM_CMD
 
 # Submitting task
-print('Submitting task on Qarnot. You can monitor the task on the online platform. Results will be downloaded when task reach Success.')
 task.submit()
+print('Submitting task on Qarnot. You can monitor the task on the online platform. Results will be downloaded when task reach Success.')
 
 # Download results when "Success" state is reached
 SUCCESS = False
@@ -56,3 +56,4 @@ while not SUCCESS:
     if task.state == 'Success':
         task.download_results(OUTPUT_BUCKET_NAME, True)
         SUCCESS = True
+
