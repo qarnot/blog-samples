@@ -17,7 +17,7 @@ PROFILE="openfoam"
 
 NB_INSTANCES = 2                               # Number of instances in your cluster.
 
-DIR_TO_SYNC = 'motorBike-2'                    # Name for your model's directory
+DIR_TO_SYNC = 'motorbike'                      # Name for your model's directory
 INPUT_BUCKET_NAME =  f"{DIR_TO_SYNC}-in"    
 OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
 TASK_NAME = f"RUN test Openfoam - {DIR_TO_SYNC}" 
@@ -33,7 +33,7 @@ task = conn.create_task(TASK_NAME, PROFILE, NB_INSTANCES)
 
 # Create the input bucket and synchronize with a local folder
 input_bucket = conn.create_bucket(INPUT_BUCKET_NAME)
-input_bucket.sync_directory(INPUT_BUCKET_NAME)  # Replace with absolute path to your folder if needed
+input_bucket.sync_directory(DIR_TO_SYNC)  # Replace with absolute path to your folder if needed
 task.resources.append(input_bucket)
 
 # Create a result bucket and attach it to the task

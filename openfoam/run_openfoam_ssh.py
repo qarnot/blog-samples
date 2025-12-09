@@ -20,7 +20,7 @@ NB_INSTANCES = 2                               # Number of instances in your clu
 OPENFOAM_VERSION="v2412"                       # Openfoam v2412
 SSH_PUBLIC_KEY="YOUR_SSH_PUBLIC_KEY"
 
-DIR_TO_SYNC = 'motorBike-2'                    # Name for your model's directory
+DIR_TO_SYNC = 'motorbike'                      # Name for your model's directory
 INPUT_BUCKET_NAME =  f"{DIR_TO_SYNC}-in"    
 OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
 TASK_NAME = f"RUN test Openfoam - {DIR_TO_SYNC}"  
@@ -30,18 +30,18 @@ if INSTANCE_TYPE == 'xeon':
     SETUP_CLUSTER_NB_SLOTS = 26
     instance_type="28c-128g-intel-dual-xeon2680v4-ssd" # Number of processes per node in the mpihost file. "24" is optimal for xeon.
 elif INSTANCE_TYPE == 'epyc':
-    SETUP_CLUSTER_NB_SLOTS = 94                 # Number of processes per node in the mpihost file. "94" is optimal for epyc.       
+    SETUP_CLUSTER_NB_SLOTS = 94                # Number of processes per node in the mpihost file. "94" is optimal for epyc.       
     instance_type = "96c-512g-amd-epyc9654-ssd"
 
 # =============================== Optional Variables =============================== #
 
-SNAPSHOT_FILTER = r"processor\d+"               # Optional : Regex filter to select which outputfiles you want to keep. Here, an example with filtering .log
-RESULTS_FILTER = r"processor\d+"                # Optional : Regex filter to select which files are copied during your snapshots
+SNAPSHOT_FILTER = r"processor\d+"              # Optional : Regex filter to select which outputfiles you want to keep. Here, an example with filtering .processor
+RESULTS_FILTER = r"processor\d+"               # Optional : Regex filter to select which files are copied during your snapshots
 
-USE_MAX_EXEC_TIME = "false"                     # Optional : Set to true to activate the configuration of maximum cluster execution time. 
-MAX_EXEC_TIME = "1h"                            # Optional : Maximum cluster execution time (ex: '8h', 'h' for hours or 'd' for days) if USE_MAX_EXEC_TIME is true" 
+USE_MAX_EXEC_TIME = "false"                    # Optional : Set to true to activate the configuration of maximum cluster execution time. 
+MAX_EXEC_TIME = "1h"                           # Optional : Maximum cluster execution time (ex: '8h', 'h' for hours or 'd' for days) if USE_MAX_EXEC_TIME is true" 
 
-POST_PROCESSING_CMD = ""                        # Optional : Post processing command, ran after simulation if not empty.
+POST_PROCESSING_CMD = ""                       # Optional : Post processing command, ran after simulation if not empty.
 
 # =============================== TASK CONFIGURATION =============================== #
 
@@ -54,16 +54,14 @@ conn = qarnot.connection.Connection(client_token=CLIENT_TOKEN)
 task = conn.create_task(TASK_NAME, PROFILE, NB_INSTANCES)
 
 # Create the input bucket and synchronize with a local folder
-input_bucket = conn.create_bucket(INPUT_BUCKET_NAME)
-input_bucket.sync_directory(DIR_TO_SYNC)                  # Can be change with your absolue path to the directory
-task.resources.append(input_bucket)
+input_bucket = conn.create_bucket(INPUT_BUCKET_NAME) 
+input_bucket.sync_directory(DIR_TO_SYNC)  # Replace with absolute path to your folder if needed              
 
 # Create a result bucket and attach it to the task
 output_bucket = conn.create_bucket(OUTPUT_BUCKET_NAME)
 task.results = output_bucket
 
-# Specify Altair CMD, version, number of cores per node, etc. 
-## Historically, at Qarnot, the Altair Hyperworks Suite was named "Altair Mechanical" at Qarnot. We kept the variable value, but don't worry - It is Altair Hyperworks!
+# Specify Openfoam CMD, version, number of cores per node, etc.  
 task.constants['DOCKER_SSH'] = SSH_PUBLIC_KEY
 task.constants['DOCKER_TAG'] = OPENFOAM_VERSION
 task.constants["SETUP_CLUSTER_NB_SLOTS"] = SETUP_CLUSTER_NB_SLOTS
