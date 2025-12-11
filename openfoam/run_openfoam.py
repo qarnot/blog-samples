@@ -44,16 +44,27 @@ task.results = output_bucket
 task.constants['RUN_SCRIPT'] = OPENFOAM_CMD
 
 # Submitting task
-print('Submitting and running task on Qarnot. You can go to the online platform for more interactive task monitoring. Otherwise, the results will be downloaded automatically once the task reaches Success.')
 task.submit()
+print('Task submitted on Qarnot')
 
 # =============================== MONITORING AND RESULTS =============================== #
 
-# Download results when "Success" state is reached
-SUCCESS = False
-while not SUCCESS:
+# The following will download result to the OUTPUT_BUCKET_NAME dir
+# It will also print the state of the task to your console
+LAST_STATE = ''
+TASK_ENDED = False
+while not TASK_ENDED:
+    if task.state != LAST_STATE:
+        LAST_STATE = task.state
+        print(f"** {LAST_STATE}")
+
     # Wait for the task to be FullyExecuting
     if task.state == 'Success':
-      print('Task reached Success. Downloading Results.')
-      task.download_results(OUTPUT_BUCKET_NAME, True)
-      SUCCESS = True
+        print(f"** {LAST_STATE}")
+        task.download_results(OUTPUT_BUCKET_NAME, True)
+        TASK_ENDED = True
+
+    # Display errors on failure
+    if task.state == 'Failure':
+        print(f"** Errors: {task.errors[0]}")
+        TASK_ENDED = True

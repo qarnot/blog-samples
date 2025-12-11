@@ -34,7 +34,7 @@ elif INSTANCE_TYPE == 'epyc':
     SETUP_CLUSTER_NB_SLOTS = 94                # Number of processes per node in the mpihost file. "94" is optimal for epyc.       
     instance_type = "96c-512g-amd-epyc9654-ssd"
 
-# =============================== Optional Variables =============================== #
+# =============================== Optional Variables =================================== #
 
 SNAPSHOT_FILTER = r"processor\d+"              # Optional : Regex filter to select which outputfiles you want to keep. Here, an example with filtering .processor
 RESULTS_FILTER = r"processor\d+"               # Optional : Regex filter to select which files are copied during your snapshots
@@ -44,7 +44,7 @@ MAX_EXEC_TIME = "1h"                           # Optional : Maximum cluster exec
 
 POST_PROCESSING_CMD = ""                       # Optional : Post processing command, ran after simulation if not empty.
 
-# =============================== TASK CONFIGURATION =============================== #
+# =============================== TASK CONFIGURATION ==================================== #
 
 # =============================== Mandatory Configuration =============================== #
 
@@ -95,10 +95,12 @@ task.constants['LOCAL_FILES_COPY_INTERVAL_SEC'] = "1800"  # Set the upload inter
 task.constants['LOCAL_FILES_COPY_REGEX'] = ""             # Filters the files to upload, leave empty to upload everything
 
 
-# =============================== LAUNCH YOUR TASK ! =============================== #
+# =============================== LAUNCH YOUR TASK ! ================================== #
 
-print('Submitting task on Qarnot')
 task.submit()
+print('Task submitted on Qarnot')
+
+# =============================== DOWNLOAD RESULTS ===================================== #
 
 # The following will download result to the OUTPUT_BUCKET_NAME dir
 # It will also print the state of the task to your console
@@ -119,39 +121,5 @@ while not TASK_ENDED:
     if task.state == 'Failure':
         print(f"** Errors: {task.errors[0]}")
         TASK_ENDED = True
-
-# =============================== DOWNLOAD RESULTS =============================== #
-
-# Download results when "Success" state is reached
-SUCCESS = False
-while not SUCCESS:
-    # Wait for the task to be FullyExecuting
-    if task.state == 'Success':
-        task.download_results(OUTPUT_BUCKET_NAME, True)
-        SUCCESS = True
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
