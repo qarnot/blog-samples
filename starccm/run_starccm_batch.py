@@ -100,8 +100,8 @@ task.scheduling_type=OnDemandScheduling()
 
 # =============================== LAUNCH YOUR TASK ! =============================== #
 
-print('Submitting task on Qarnot')
 task.submit()
+print('Submitting task on Qarnot')
 
 # =============================== MONITORING AND RESULTS =============================== #
 

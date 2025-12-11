@@ -16,13 +16,16 @@ load_dotenv()
 
 CLIENT_TOKEN=os.getenv("QARNOT_TOKEN")         # If your token is in a .env. You can also execute, in your terminal, 'export QARNOT_TOKEN='your_token''.
 PROFILE="YOUR_PROFILE"                         # Example : 'starccm-qarnot'
-SSH_PUBLIC_KEY="YOUR_SSH_PUBLIC_KEY"
 
-NB_INSTANCES = 2                               # Number of instances
-
+NB_INSTANCES = 2                               # Number of instances and STARCCM_CMD according to single node or multi-node simulation
+if NB_INSTANCES == 1: 
+    STARCCM_CMD="starccm+ -power -batch run cylindre_complet_extrusion_both_demi_DP_reconstruit_init_c4056f43d7.sim"
+elif NB_INSTANCES > 2:
+    STARCCM_CMD="starccm+ -power -batch -mpi openmpi -mpiflags \"--mca btl ^openib,tcp --mca pml ucx --mca osc ucx\" -machinefile /job/mpihosts run cylindre_complet_extrusion_both_demi_DP_reconstruit_init_c4056f43d7.sim"
+    
 STARCCM_VERSION="19.04.009"                    # StarCCM version 19.04.009
 STARCCM_PRECISION="mixed"                      # Precision supported by the version you are using
-                      
+
 DIR_TO_SYNC = 'starccm_cylindre_test'          # Name for your model's directory with your .sim model
 INPUT_BUCKET_NAME =  f"{DIR_TO_SYNC}-in"    
 OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
@@ -74,12 +77,9 @@ task.results = output_bucket
 
 # Specify StarCCM version, SSH, number of cores per node, etc. 
 task.constants['DOCKER_TAG'] = STARCCM_VERSION 
+task.constants['STARCCM_PRECICION'] = STARCCM_PRECISION
 task.constants["SETUP_CLUSTER_NB_SLOTS"] = SETUP_CLUSTER_NB_SLOTS
 task.hardware_constraints = [qarnot.hardware_constraint.SpecificHardware(instance_type)]
-
-# Set to 'true' to keep cluster alive once your simulation is done.
-task.constants['NO_EXIT'] = "false" 
-task.constants['DOCKER_SSH'] = SSH_PUBLIC_KEY
 
 # Scheduling type
 task.scheduling_type=OnDemandScheduling()
@@ -98,35 +98,39 @@ task.scheduling_type=OnDemandScheduling()
 #task.constants['USE_SIMULATION_MAXIMUM_EXECUTION_TIME'] = USE_MAX_EXEC_TIME
 #task.constants['SIMULATION_MAXIMUM_EXECUTION_TIME'] = MAX_EXEC_TIME
 
+# Settings to copy from simulation directory (/share) to bucket linked directory (/job).
+##  /job  is the dir where buckets are downloaded at start and uploaded to your bucket by the snapshots.
+## /share is the dir where the simulation is executing. Fastest disk and shared directories between nodes.
+
+#task.constants['LOCAL_FILES_COPY_FEATURE'] = "true"       # Set to true to upload periodically from the /share folder
+#task.constants['LOCAL_FILES_COPY_INTERVAL_SEC'] = "900"   # Set the upload interval in seconds
+#task.constants['LOCAL_FILES_COPY_REGEX'] = ""             # Filters the files to upload, leave empty to upload everything
+
+
 # =============================== LAUNCH YOUR TASK ! =============================== #
 
-task.submit()
 print('Submitting task on Qarnot')
+task.submit()
 
 # =============================== MONITORING AND RESULTS =============================== #
 
-# The following will print the state of the task to your console
-# It will also print the command to connect through ssh to the task when it's ready
+
+# The following will download result to the OUTPUT_DIR 
+# It will also print the state of the task to your console
 LAST_STATE = ''
-SSH_TUNNELING_DONE = False
-while not SSH_TUNNELING_DONE:
+TASK_ENDED = False
+while not TASK_ENDED:
     if task.state != LAST_STATE:
         LAST_STATE = task.state
         print(f"** {LAST_STATE}")
 
     # Wait for the task to be FullyExecuting
-    if task.state == 'FullyExecuting':
-        # If the ssh connexion was not done yet and the list active_forward is available (len!=0)
-        forward_list = task.status.running_instances_info.per_running_instance_info[0].active_forward
-        if not SSH_TUNNELING_DONE and len(forward_list) != 0:
-            ssh_forward_port = forward_list[0].forwarder_port
-            ssh_forward_host = forward_list[0].forwarder_host
-            cmd = f"ssh -o StrictHostKeyChecking=no root@{ssh_forward_host} -p {ssh_forward_port}"
-            print(cmd)
-            SSH_TUNNELING_DONE = True
+    if task.state == 'Success':
+        print(f"** {LAST_STATE}")
+        task.download_results(OUTPUT_BUCKET_NAME, True)
+        TASK_ENDED = True
 
     # Display errors on failure
     if task.state == 'Failure':
         print(f"** Errors: {task.errors[0]}")
-        SSH_TUNNELING_DONE = True
-
+        TASK_ENDED = True
