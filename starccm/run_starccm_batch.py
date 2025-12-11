@@ -98,15 +98,6 @@ task.scheduling_type=OnDemandScheduling()
 #task.constants['USE_SIMULATION_MAXIMUM_EXECUTION_TIME'] = USE_MAX_EXEC_TIME
 #task.constants['SIMULATION_MAXIMUM_EXECUTION_TIME'] = MAX_EXEC_TIME
 
-# Settings to copy from simulation directory (/share) to bucket linked directory (/job).
-##  /job  is the dir where buckets are downloaded at start and uploaded to your bucket by the snapshots.
-## /share is the dir where the simulation is executing. Fastest disk and shared directories between nodes.
-
-#task.constants['LOCAL_FILES_COPY_FEATURE'] = "true"       # Set to true to upload periodically from the /share folder
-#task.constants['LOCAL_FILES_COPY_INTERVAL_SEC'] = "900"   # Set the upload interval in seconds
-#task.constants['LOCAL_FILES_COPY_REGEX'] = ""             # Filters the files to upload, leave empty to upload everything
-
-
 # =============================== LAUNCH YOUR TASK ! =============================== #
 
 print('Submitting task on Qarnot')
@@ -114,8 +105,7 @@ task.submit()
 
 # =============================== MONITORING AND RESULTS =============================== #
 
-
-# The following will download result to the OUTPUT_DIR 
+# The following will download results to the OUTPUT_BUCKET_NAME directory
 # It will also print the state of the task to your console
 LAST_STATE = ''
 TASK_ENDED = False
@@ -134,3 +124,4 @@ while not TASK_ENDED:
     if task.state == 'Failure':
         print(f"** Errors: {task.errors[0]}")
         TASK_ENDED = True
+

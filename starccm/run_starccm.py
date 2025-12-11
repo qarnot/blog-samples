@@ -49,11 +49,24 @@ task.constants["STARCCM_CMD"] = STARCCM_CMD
 task.submit()
 print('Submitting task on Qarnot. You can monitor the task on the online platform. Results will be downloaded when task reach Success.')
 
-# Download results when "Success" state is reached
-SUCCESS = False
-while not SUCCESS:
+# =============================== MONITORING AND RESULTS =============================== #
+
+# The following will download result to the OUTPUT_BUCKET_NAME directory
+# It will also print the state of the task to your console
+LAST_STATE = ''
+TASK_ENDED = False
+while not TASK_ENDED:
+    if task.state != LAST_STATE:
+        LAST_STATE = task.state
+        print(f"** {LAST_STATE}")
+
     # Wait for the task to be FullyExecuting
     if task.state == 'Success':
+        print(f"** {LAST_STATE}")
         task.download_results(OUTPUT_BUCKET_NAME, True)
-        SUCCESS = True
+        TASK_ENDED = True
 
+    # Display errors on failure
+    if task.state == 'Failure':
+        print(f"** Errors: {task.errors[0]}")
+        TASK_ENDED = True
