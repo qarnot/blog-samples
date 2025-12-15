@@ -10,15 +10,15 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# =============================== SETUP VARIABLES =============================== #
+# =============================== SETUP VARIABLES ==================================== #
 
-# =============================== Mandatory Variables =============================== #
+# =============================== Mandatory Variables ================================= #
 
 CLIENT_TOKEN=os.getenv("QARNOT_TOKEN")         # If your token is in a .env. You can also execute, in your terminal, 'export QARNOT_TOKEN='your_token''.
 PROFILE="YOUR_PROFILE"                         # Example : 'altair-hyperworks-qarnot-vnc-wan'
 #ALM_HHWU_TOKEN='YOUR_ALM_HHWU_TOKEN'          # If your licence is hosted on Altair-One 
 
-NB_INSTANCES = 2                               # Number of instances in your cluster.
+NB_INSTANCES = 1                               # Number of instances in your cluster.
 ALTAIR_VERSION="2024.1"                        # Altair Hyperwork 2024.1 
                         
 DIR_TO_SYNC = 'altair_block_test'              # Exact name for your model's directory containg your .rad (Radioss) or .fem (Optistruct) model
@@ -34,7 +34,7 @@ elif INSTANCE_TYPE == 'epyc':
     SETUP_CLUSTER_NB_SLOTS = 94                   # Number of processes per node in the mpihost file. "94" is optimal for epyc.       
     instance_type = "96c-512g-amd-epyc9654-ssd"
 
-ALTAIR_CMD = f"optistruct -np {SETUP_CLUSTER_NB_SLOTS}*{NB_INSTANCES} block.fem" # Your Altair Hyperworks CMD, depending on your solver
+ALTAIR_CMD = f"optistruct -nt {SETUP_CLUSTER_NB_SLOTS} -out block.fem" # Your Altair Hyperworks CMD, depending on your solver
 
 # =============================== Optional Variables =============================== #
 
@@ -47,23 +47,22 @@ MAX_EXEC_TIME = "8h"                           # Optional : Maximum cluster exec
 POST_PROCESSING_CMD = ""                       # Optional : Post processing command, ran after simulation if not empty.
                                                # Use '$optistruct --help' or '$radioss --help' on ssh to understand all the possible flags, or contact our team to help you optimize your case.
 
-# =============================== TASK CONFIGURATION =============================== #
+# =============================== TASK CONFIGURATION ==================================== #
 
 # =============================== Mandatory Configuration =============================== #
 
 # Create a connection, from which all other objects will be derived
 conn = qarnot.connection.Connection(client_token=CLIENT_TOKEN)
 
-# Insert your Altair One token to access your licence, if applicable
-#task.constants['ALM_HHWU_TOKEN'] = ALM_HHWU_TOKEN
-
 # Print available profiles with you account
 avail_profile = [profile for profile in conn.profiles_names() if 'altair' in profile]
 print(f'Available profiles for your account : {avail_profile}')
 
-
 # Create task
 task = conn.create_task(TASK_NAME, PROFILE, NB_INSTANCES)
+
+# Insert your Altair One token to access your licence, if applicable
+#task.constants['ALM_HHWU_TOKEN'] = ALM_HHWU_TOKEN
 
 # Create the input bucket and synchronize with a local folder
 input_bucket = conn.create_bucket(INPUT_BUCKET_NAME)
@@ -87,8 +86,6 @@ task.scheduling_type=OnDemandScheduling()
 # task.scheduling_type=ReservedScheduling()               # If your company has reserved nodes
 # task.targeted_reserved_machine_key = instance_type      # Uncomment if your company has reserved nodes
 
-
-
 # =============================== Optional Configuration =============================== #
 
 #task.snapshot(1800)                                     # Define interval time in seconds when /job will be saved to your bucket.
@@ -108,10 +105,12 @@ task.scheduling_type=OnDemandScheduling()
 #task.constants['LOCAL_FILES_COPY_REGEX'] = ""             # Filters the files to upload, leave empty to upload everything
 
 
-# =============================== LAUNCH YOUR TASK ! =============================== #
+# =============================== LAUNCH YOUR TASK ! ================================== #
 
-print('Submitting task on Qarnot')
 task.submit()
+print('Submitting task on Qarnot')
+
+# =============================== MONITORING AND RESULTS =============================== #
 
 # The following will download result to the OUTPUT_DIR 
 # It will also print the state of the task to your console
@@ -125,7 +124,7 @@ while not TASK_ENDED:
     # Wait for the task to be FullyExecuting
     if task.state == 'Success':
         print(f"** {LAST_STATE}")
-        task.download_results(OUTPUT_DIR, True)
+        task.download_results(OUTPUT_BUCKET_NAME, True)
         TASK_ENDED = True
 
     # Display errors on failure
@@ -133,12 +132,3 @@ while not TASK_ENDED:
         print(f"** Errors: {task.errors[0]}")
         TASK_ENDED = True
 
-# =============================== DOWNLOAD RESULTS =============================== #
-
-# Download results when "Success" state is reached
-SUCCESS = False
-while not SUCCESS:
-    # Wait for the task to be FullyExecuting
-    if task.state == 'Success':
-        task.download_results(OUTPUT_BUCKET_NAME, True)
-        SUCCESS = True

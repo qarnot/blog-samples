@@ -19,7 +19,7 @@ PROFILE="YOUR_PROFILE_SSH"                     # Example : 'altair-hyperworks-qa
 SSH_PUBLIC_KEY="YOUR_SSH_PUBLIC_KEY"
 #ALM_HHWU_TOKEN='YOUR_ALM_HHWU_TOKEN'           # If your licence is hosted on Altair-One 
 
-NB_INSTANCES = 2                               # Number of instances in your cluster.
+NB_INSTANCES = 1                               # Number of instances in your cluster.
 ALTAIR_VERSION="2024.1"                        # Altair Hyperwork 2024.1 
                         
 DIR_TO_SYNC = 'altair_block_test'              # Exact name for your model's directory containg your .rad (Radioss) or .fem (Optistruct) model
@@ -46,9 +46,6 @@ MAX_EXEC_TIME = "8h"                           # Optional : Maximum cluster exec
 POST_PROCESSING_CMD = ""                       # Optional : Post processing command, ran after simulation if not empty.
                                                # Use '$optistruct --help' or '$radioss --help' on ssh to understand all the possible flags, or contact our team to help you optimize your case.
 
-
-
-
 # =============================== TASK CONFIGURATION =============================== #
 
 # =============================== Mandatory Configuration =============================== #
@@ -56,15 +53,15 @@ POST_PROCESSING_CMD = ""                       # Optional : Post processing comm
 # Create a connection, from which all other objects will be derived
 conn = qarnot.connection.Connection(client_token=CLIENT_TOKEN)
 
-# Insert your Altair One token to access your licence, if applicable
-#task.constants['ALM_HHWU_TOKEN'] = ALM_HHWU_TOKEN
-
 # Print available profiles with you account
 avail_profile = [profile for profile in conn.profiles_names() if 'altair' in profile]
 print(f'Available profiles for your account : {avail_profile}')
 
 # Create task
 task = conn.create_task(TASK_NAME, PROFILE, NB_INSTANCES)
+
+# Insert your Altair One token to access your licence, if applicable
+#task.constants['ALM_HHWU_TOKEN'] = ALM_HHWU_TOKEN
 
 # Create the input bucket and synchronize with a local folder
 input_bucket = conn.create_bucket(INPUT_BUCKET_NAME)
@@ -109,8 +106,8 @@ task.scheduling_type=OnDemandScheduling()
 
 # =============================== LAUNCH YOUR TASK ! =============================== #
 
-print('Submitting task on Qarnot')
 task.submit()
+print('Submitting task on Qarnot')
 
 # The following will print the state of the task to your console
 # It will also print the command to connect through ssh to the task when it's ready
