@@ -86,8 +86,6 @@ task.scheduling_type=OnDemandScheduling()
 # task.scheduling_type=ReservedScheduling()               # If your company has reserved nodes
 # task.targeted_reserved_machine_key = instance_type      # Uncomment if your company has reserved nodes
 
-
-
 # =============================== Optional Configuration =============================== #
 
 #task.snapshot(1800)                                     # Define interval time in seconds when /job will be saved to your bucket.

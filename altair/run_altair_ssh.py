@@ -46,9 +46,6 @@ MAX_EXEC_TIME = "8h"                           # Optional : Maximum cluster exec
 POST_PROCESSING_CMD = ""                       # Optional : Post processing command, ran after simulation if not empty.
                                                # Use '$optistruct --help' or '$radioss --help' on ssh to understand all the possible flags, or contact our team to help you optimize your case.
 
-
-
-
 # =============================== TASK CONFIGURATION =============================== #
 
 # =============================== Mandatory Configuration =============================== #
@@ -65,7 +62,6 @@ task = conn.create_task(TASK_NAME, PROFILE, NB_INSTANCES)
 
 # Insert your Altair One token to access your licence, if applicable
 #task.constants['ALM_HHWU_TOKEN'] = ALM_HHWU_TOKEN
-
 
 # Create the input bucket and synchronize with a local folder
 input_bucket = conn.create_bucket(INPUT_BUCKET_NAME)
