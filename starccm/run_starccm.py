@@ -13,16 +13,17 @@ load_dotenv()
 # =============================== Mandatory Variables =============================== #
 
 CLIENT_TOKEN=os.getenv("QARNOT_TOKEN")         # If your token is in a .env. You can also execute, in your terminal, 'export QARNOT_TOKEN='your_token''.
-PROFILE="YOUR_PROFILE"                         # Example : 'starccm-qarnot'
+PROFILE="starccm-qarnot"                         # Example : 'starccm-qarnot'
 
-NB_INSTANCES = 2                               # Number of instances in your cluster.
+NB_INSTANCES = 1                               # Number of instance in your cluster. Keep to one for this script.
 
 DIR_TO_SYNC = 'starccm_cylindre_test'          # Name for your model's directory with your .sim model
 INPUT_BUCKET_NAME =  f"{DIR_TO_SYNC}-in"    
 OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
 TASK_NAME = f"RUN test StarCCM - {DIR_TO_SYNC}" 
 
-STARCCM_CMD = f"starccm+ -np 26*{NB_INSTANCES} -batch cylindre_complet_extrusion_both_demi_DP_reconstruit_init.sim" 
+#STARCCM_CMD = f"starccm+ -power -batch run -np {26*NB_INSTANCES} cylindre_complet_extrusion_both_demi_DP_reconstruit_init.sim" 
+STARCCM_CMD="starccm+ -power -batch -np 26 run cylindre_complet_extrusion_both_demi_DP_reconstruit_init_c4056f43d7.sim"
 
 # =============================== TASK CONFIGURATION =============================== #
 
@@ -47,7 +48,7 @@ task.constants["STARCCM_CMD"] = STARCCM_CMD
 
 # Submitting task
 task.submit()
-print('Submitting task on Qarnot. You can monitor the task on the online platform. Results will be downloaded when task reach Success.')
+print('Submitting task on Qarnot')
 
 # =============================== MONITORING AND RESULTS =============================== #
 

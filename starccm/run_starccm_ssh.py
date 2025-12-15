@@ -10,7 +10,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-# =============================== SETUP VARIABLES =============================== #
+# =============================== SETUP VARIABLES =================================== #
 
 # =============================== Mandatory Variables =============================== #
 
@@ -37,8 +37,7 @@ elif INSTANCE_TYPE == 'epyc':
     instance_type = "96c-512g-amd-epyc9654-ssd"
 
 
-
-# =============================== Optional Variables =============================== #
+# =============================== Optional Variables ==================================== #
 
 #OUTPUT_FILTER = r"^.*\.sim$"                  # Optional : Regex filter to select which outputfiles you want to keep. Here, an example with .sim
 #SNAPSHOT_FILTER = r"^.*\.sim$"                # Optional : Regex filter to select which files are copied during your snapshots
@@ -48,7 +47,7 @@ MAX_EXEC_TIME = "8h"                           # Optional : Maximum cluster exec
 
 POST_PROCESSING_CMD = ""                       # Optional : Post processing command, ran after simulation if not empty.
 
-# =============================== TASK CONFIGURATION =============================== #
+# =============================== TASK CONFIGURATION ==================================== #
 
 # =============================== Mandatory Configuration =============================== #
 
@@ -98,10 +97,10 @@ task.scheduling_type=OnDemandScheduling()
 #task.constants['USE_SIMULATION_MAXIMUM_EXECUTION_TIME'] = USE_MAX_EXEC_TIME
 #task.constants['SIMULATION_MAXIMUM_EXECUTION_TIME'] = MAX_EXEC_TIME
 
-# =============================== LAUNCH YOUR TASK ! =============================== #
+# =============================== LAUNCH YOUR TASK ! ================================== #
 
-print('Submitting task on Qarnot')
 task.submit()
+print('Submitting task on Qarnot')
 
 # =============================== MONITORING AND RESULTS =============================== #
 
