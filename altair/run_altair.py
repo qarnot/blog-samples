@@ -24,10 +24,10 @@ INPUT_BUCKET_NAME =  f"{DIR_TO_SYNC}-in"
 OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
 TASK_NAME = f"RUN test Altair - {DIR_TO_SYNC}" 
 
-INSTANCE_TYPE = 'xeon'                         # xeon is the default choice. Otherwise, put 'epyc'.
+INSTANCE_TYPE = 'xeon'                         # xeon is the default choice for this script.
 SETUP_CLUSTER_NB_SLOTS = 26                    
-
-ALTAIR_CMD = f"optistruct -nt {SETUP_CLUSTER_NB_SLOTS} -out block.fem" # Your Altair Hyperworks CMD, depending on your solver
+THREAD_PER_SOCKET=SETUP_CLUSTER_NB_SLOTS//2     # xeon instances are dual sockets, so we need to divide by 2.
+ALTAIR_CMD = f"optistruct -np 2 -nt {THREAD_PER_SOCKET} -out block.fem" # Your Altair Hyperworks CMD, depending on your solver
 
 # =============================== TASK CONFIGURATION =============================== #
 

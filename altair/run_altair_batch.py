@@ -29,12 +29,13 @@ TASK_NAME = f"RUN test Altair - {DIR_TO_SYNC}"
 INSTANCE_TYPE = 'xeon'                         # xeon is the default choice. Otherwise, put 'epyc'.
 if INSTANCE_TYPE == 'xeon':
     SETUP_CLUSTER_NB_SLOTS = 26
+    THREAD_PER_SOCKET=SETUP_CLUSTER_NB_SLOTS//2     # xeon instances are dual sockets, so we need to divide by 2.
+    ALTAIR_CMD = f"optistruct -np 2 -nt {THREAD_PER_SOCKET} -out block.fem" 
     instance_type="28c-128g-intel-dual-xeon2680v4-ssd" # Number of processes per node in the mpihost file. "24" is optimal for xeon.
 elif INSTANCE_TYPE == 'epyc':
-    SETUP_CLUSTER_NB_SLOTS = 94                   # Number of processes per node in the mpihost file. "94" is optimal for epyc.       
+    SETUP_CLUSTER_NB_SLOTS = 94                     # Number of processes per node in the mpihost file. "94" is optimal for epyc.       
     instance_type = "96c-512g-amd-epyc9654-ssd"
-
-ALTAIR_CMD = f"optistruct -nt {SETUP_CLUSTER_NB_SLOTS} -out block.fem" # Your Altair Hyperworks CMD, depending on your solver
+    ALTAIR_CMD = f"optistruct -nt {SETUP_CLUSTER_NB_SLOTS} -out block.fem" # Your Altair Hyperworks CMD, depending on your solver
 
 # =============================== Optional Variables =============================== #
 
