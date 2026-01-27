@@ -54,7 +54,7 @@ Pour lancer le calcul sur Qarnot, enregistrez le code ci-dessus en tant que scri
 </pre>
 
 <div class="wf-code-card"
-     data-url="https://cdn.jsdelivr.net/gh/qarnot/blog-samples@ansys_mecha_update_with_md/ansys-mechanical/run-ansys-mechanical.py"
+     data-url="https://cdn.jsdelivr.net/gh/qarnot/blog-samples@main/ansys-mechanical/run-ansys-mechanical.py"
      data-filename="run-ansys-mechanical.py"
      data-language="python"
      data-linenumbers="true"
@@ -72,7 +72,7 @@ Vous savez désormais lancer une tâche ansys-mechanical sur Qarnot !
 Le script présenté ci-dessous vous permet d’explorer les fonctionnalités plus avancées de la plateforme pour un lancement en batch.
 
 <div class="wf-code-card"
-     data-url="https://cdn.jsdelivr.net/gh/qarnot/blog-samples@ansys_mecha_update_with_md/ansys-mechanical/run-ansys-mechanical_batch.py"
+     data-url="https://cdn.jsdelivr.net/gh/qarnot/blog-samples@main/ansys-mechanical/run-ansys-mechanical_batch.py"
      data-filename="run-ansys-mechanical_batch.py"
      data-language="python"
      data-linenumbers="true"
