@@ -50,9 +50,7 @@ Le lancement batch passe par `starlaunch jobmanager`, qui pilote l’étude Desi
 
 Pour le script simple sur un seul Xeon, la commande utile est de la forme :
 
-```bash
-starlaunch jobmanager --command "starccm+ -batch industrialExhaust_optimization.dmprj -preallocpower -passtodesign -power -licpath $CDLMD_LICENSE_FILE -mpi openmpi -np 26" --slots 0 --resourcefile /job/mpihosts
-```
+> starlaunch jobmanager --command "starccm+ -batch industrialExhaust_optimization.dmprj -preallocpower -passtodesign -power -licpath $CDLMD_LICENSE_FILE -mpi openmpi -np 26" --slots 0 --resourcefile /job/mpihosts
 
 Dans le script avancé, vous pouvez ensuite passer :
 - à `-np 94` sur une machine `96c`,
