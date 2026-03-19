@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to launch an OpenFOAM task with SSH connectivity on Qarnot's platform.
+Script to launch a detailed OpenFOAM batch task on Qarnot's platform.
 """
 
 import os
@@ -13,29 +13,40 @@ from qarnot.scheduling_type import OnDemandScheduling, FlexScheduling, ReservedS
 
 CLIENT_TOKEN = os.getenv("QARNOT_TOKEN")  # If your token is in your env.
 CLIENT_TOKEN = "MY_SECRET_TOKEN"          # To comment or change
-PROFILE = "openfoam-ssh"                  
-SSH_PUBLIC_KEY="YOUR_SSH_PUBLIC_KEY"
+PROFILE = "openfoam"
 
 # =============================================================================== #
 DIR_TO_SYNC = "motorbike"
 INPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-in"
-OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
-TASK_NAME = f"RUN case SSH - {DIR_TO_SYNC}"
+OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-advanced-out"
+TASK_NAME = f"RUN advanced case - {DIR_TO_SYNC}"
 
 OPENFOAM_VERSION = "v2412"
+RUN_SCRIPT = "Allrun"
+
+# =============================== TOPOLOGY OPTIONS =============================== #
+
+# 96c single-node example
 NB_INSTANCES = 1
-SETUP_CLUSTER_NB_SLOTS = 26
-INSTANCE_TYPE = "28c-128g-intel-dual-xeon2680v4-ssd"
+SETUP_CLUSTER_NB_SLOTS = 94
+INSTANCE_TYPE = "96c-512g-amd-epyc9654-ssd"
+
+# 2x28c multi-node example
+# Uncomment this block instead to use two Intel 28-core machines.
+#
+# NB_INSTANCES = 2
+# SETUP_CLUSTER_NB_SLOTS = 26
+# INSTANCE_TYPE = "28c-128g-intel-dual-xeon2680v4-ssd"
 
 # =============================== Optional Variables =============================== #
 
-SNAPSHOT_FILTER = ""        # r"processor\d+" - Regex filter to select which outputfiles you want to keep. Here, an example with filtering .processor
-RESULTS_FILTER = ""         # r"processor\d+" - Regex filter to select which files are copied during your snapshots
+SNAPSHOT_FILTER = ""        # r"processor\d+" - Optional : Regex filter to select which outputfiles you want to keep. Here, an example with filtering .processor
+RESULTS_FILTER = ""         # r"processor\d+" - Optional : Regex filter to select which files are copied during your snapshots
 
-USE_MAX_EXEC_TIME = "false" # Set to true to activate the configuration of maximum cluster execution time. 
-MAX_EXEC_TIME = "1h"        # Maximum cluster execution time (ex: '8h', 'h' for hours or 'd' for days) if USE_MAX_EXEC_TIME is true" 
+USE_MAX_EXEC_TIME = "false" # Optional : Set to true to activate the configuration of maximum cluster execution time. 
+MAX_EXEC_TIME = "1h"        # Optional : Maximum cluster execution time (ex: '8h', 'h' for hours or 'd' for days) if USE_MAX_EXEC_TIME is true" 
 
-POST_PROCESSING_CMD = ""    # Post processing command, ran after simulation if not empty.
+POST_PROCESSING_CMD = ""    # Optional : Post processing command, ran after simulation if not empty.
 
 # Settings to copy from simulation directory (/share) to bucket linked directory (/job).
 ##  /job  is the dir where buckets are downloaded at start and uploaded to your bucket by the snapshots.
@@ -60,7 +71,7 @@ task.resources.append(input_bucket)
 output_bucket = conn.create_bucket(OUTPUT_BUCKET_NAME)
 task.results = output_bucket
 
-task.constants["DOCKER_SSH"] = SSH_PUBLIC_KEY
+task.constants["RUN_SCRIPT"] = RUN_SCRIPT
 task.constants["DOCKER_TAG"] = OPENFOAM_VERSION
 task.constants["SETUP_CLUSTER_NB_SLOTS"] = SETUP_CLUSTER_NB_SLOTS
 task.hardware_constraints = [qarnot.hardware_constraint.SpecificHardware(INSTANCE_TYPE)]
@@ -90,25 +101,21 @@ task.constants["LOCAL_FILES_COPY_REGEX"] = LOCAL_FILES_COPY_REGEX
 task.submit()
 print("Task submitted on Qarnot")
 
-# =============================== MONITORING AND SSH ACCESS =============================== #
+# =============================== MONITORING AND RESULTS =============================== #
 
 LAST_STATE = ""
-SSH_COMMAND_PRINTED = False
+TASK_ENDED = False
 
-while not SSH_COMMAND_PRINTED:
+while not TASK_ENDED:
     if task.state != LAST_STATE:
         LAST_STATE = task.state
         print(f"** {LAST_STATE}")
 
-    if task.state == "FullyExecuting":
-        forward_list = task.status.running_instances_info.per_running_instance_info[0].active_forward
-        if len(forward_list) != 0:
-            ssh_forward_port = forward_list[0].forwarder_port
-            ssh_forward_host = forward_list[0].forwarder_host
-            cmd = f"ssh -o StrictHostKeyChecking=no qarnot@{ssh_forward_host} -p {ssh_forward_port}"
-            print(cmd)
-            SSH_COMMAND_PRINTED = True
+    if task.state == "Success":
+        print(f"** {LAST_STATE}")
+        task.download_results(OUTPUT_BUCKET_NAME, True)
+        TASK_ENDED = True
 
     if task.state == "Failure":
         print(f"** Errors: {task.errors[0]}")
-        SSH_COMMAND_PRINTED = True
+        TASK_ENDED = True
