@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to launch a STAR-CCM+ task with SSH connectivity on Qarnot's platform.
+Script to launch a detailed STAR-CCM+ batch task on Qarnot's platform.
 """
 
 import os
@@ -13,22 +13,43 @@ from qarnot.scheduling_type import OnDemandScheduling, FlexScheduling, ReservedS
 
 CLIENT_TOKEN = os.getenv("QARNOT_TOKEN") # If your token is in your env.
 CLIENT_TOKEN = "MY_SECRET_TOKEN"         # To comment or change
-PROFILE = "YOUR_PROFILE"                 # Example: "starccm-qarnot-ssh"
-SSH_PUBLIC_KEY = "YOUR_SSH_PUBLIC_KEY"
+PROFILE = "YOUR_PROFILE"                 # Example: "starccm-qarnot"
 
 # =============================================================================== #
 DIR_TO_SYNC = "cylindre"
 INPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-in"
-OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-out"
-TASK_NAME = f"RUN case SSH - {DIR_TO_SYNC}"
+OUTPUT_BUCKET_NAME = f"{DIR_TO_SYNC}-advanced-out"
+TASK_NAME = f"RUN advanced case - {DIR_TO_SYNC}"
 
 STARCCM_VERSION = "20.04.008"
 STARCCM_PRECISION = "double"
-NB_INSTANCES = 1
-SETUP_CLUSTER_NB_SLOTS = 26
-INSTANCE_TYPE = "28c-128g-intel-dual-xeon2680v4-ssd"
+SIMULATION_FILE = "cylindre_complet_extrusion_both_demi_DP_reconstruit_init.sim"
 
-STARCCM_CMD = ""
+# =============================== TOPOLOGY OPTIONS =============================== #
+
+# 96c single-node example
+NB_INSTANCES = 1
+SETUP_CLUSTER_NB_SLOTS = 94
+INSTANCE_TYPE = "96c-512g-amd-epyc9654-ssd"
+QARNOT_TOTAL_CLUSTER_CORES = 94
+STARCCM_CMD = (
+    "starccm+ -power -batch -mpi openmpi "
+    f"-np {QARNOT_TOTAL_CLUSTER_CORES} run {SIMULATION_FILE}"
+)
+
+# 2x28c multi-node example
+# Uncomment this block instead to use two Intel 28-core machines.
+#
+# NB_INSTANCES = 2
+# SETUP_CLUSTER_NB_SLOTS = 26
+# INSTANCE_TYPE = "28c-128g-intel-dual-xeon2680v4-ssd"
+# QARNOT_TOTAL_CLUSTER_CORES = 52
+# STARCCM_CMD = (
+#     "starccm+ -power -batch -mpi openmpi "
+#     f"-np {QARNOT_TOTAL_CLUSTER_CORES} "
+#     '-mpiflags "--mca btl ^openib,tcp --mca pml ucx --mca osc ucx" '
+#     f"-machinefile /job/mpihosts run {SIMULATION_FILE}"
+# )
 
 # =============================== Optional Variables =============================== #
 
@@ -39,6 +60,8 @@ RESULTS_FILTER = ""
 
 USE_MAX_EXEC_TIME = "false"                   # Optional: set to true to cap cluster execution time.
 MAX_EXEC_TIME = "8h"                          # Optional: use 'h' for hours or 'd' for days.
+
+POST_PROCESSING_CMD = ""                      # Optional: post-processing command run after the solver.
 
 # =============================== TASK CONFIGURATION =============================== #
 
@@ -56,8 +79,6 @@ task.results = output_bucket
 task.constants["STARCCM_CMD"] = STARCCM_CMD
 task.constants["DOCKER_TAG"] = STARCCM_VERSION
 task.constants["STARCCM_PRECISION"] = STARCCM_PRECISION
-task.constants["DOCKER_SSH"] = SSH_PUBLIC_KEY
-task.constants["NO_EXIT"] = "true"
 task.constants["SETUP_CLUSTER_NB_SLOTS"] = SETUP_CLUSTER_NB_SLOTS
 task.hardware_constraints = [qarnot.hardware_constraint.SpecificHardware(INSTANCE_TYPE)]
 
@@ -73,6 +94,7 @@ task.snapshot(1800)  # Define interval time in seconds when /job will be saved t
 task.snapshot_whitelist = SNAPSHOT_FILTER
 task.results_whitelist = RESULTS_FILTER
 
+task.constants["POST_PROCESSING_CMD"] = POST_PROCESSING_CMD
 task.constants["USE_SIMULATION_MAXIMUM_EXECUTION_TIME"] = USE_MAX_EXEC_TIME
 task.constants["SIMULATION_MAXIMUM_EXECUTION_TIME"] = MAX_EXEC_TIME
 
@@ -80,26 +102,23 @@ task.constants["SIMULATION_MAXIMUM_EXECUTION_TIME"] = MAX_EXEC_TIME
 
 task.submit()
 print("Task submitted on Qarnot")
+print(f"STARCCM_CMD: {STARCCM_CMD}")
 
-# =============================== MONITORING AND SSH ACCESS =============================== #
+# =============================== MONITORING AND RESULTS =============================== #
 
 LAST_STATE = ""
-SSH_COMMAND_PRINTED = False
+TASK_ENDED = False
 
-while not SSH_COMMAND_PRINTED:
+while not TASK_ENDED:
     if task.state != LAST_STATE:
         LAST_STATE = task.state
         print(f"** {LAST_STATE}")
 
-    if task.state == "FullyExecuting":
-        forward_list = task.status.running_instances_info.per_running_instance_info[0].active_forward
-        if len(forward_list) != 0:
-            ssh_forward_port = forward_list[0].forwarder_port
-            ssh_forward_host = forward_list[0].forwarder_host
-            cmd = f"ssh -o StrictHostKeyChecking=no root@{ssh_forward_host} -p {ssh_forward_port}"
-            print(cmd)
-            SSH_COMMAND_PRINTED = True
+    if task.state == "Success":
+        print(f"** {LAST_STATE}")
+        task.download_results(OUTPUT_BUCKET_NAME, True)
+        TASK_ENDED = True
 
     if task.state == "Failure":
         print(f"** Errors: {task.errors[0]}")
-        SSH_COMMAND_PRINTED = True
+        TASK_ENDED = True
