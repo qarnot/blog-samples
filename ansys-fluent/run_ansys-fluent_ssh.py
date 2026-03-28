@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script to launch a detailed Fluent task, in Batch mode, on Qarnot's platform
+Script to launch a detailed Fluent task with ssh connectivity on Qarnot's platform
 """
 
 import qarnot
