@@ -44,10 +44,6 @@ STARCCM_CMD = (
     f"-np {QARNOT_TOTAL_CLUSTER_CORES} --slots 0 --resourcefile /job/mpihosts"
 )
 
-# To use multiple node, we need to use this mpi config instead of "-mpi openmpi": 
-# f"-mpi openmpi -np {TOTAL_PROCESSES} -machinefile /job/mpihosts -mpiflags '--mca btl ^openib,tcp --mca pml ucx --mca osc ucx'"
-
-
 # =============================== TASK CONFIGURATION =============================== #
 
 conn = qarnot.connection.Connection(client_token=CLIENT_TOKEN)
