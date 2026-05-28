@@ -38,7 +38,7 @@ conn = qarnot.connection.Connection(client_token=CLIENT_TOKEN)
 task = conn.create_task(TASK_NAME, PROFILE, NB_INSTANCES)
 
 # Insert your Altair One token to access your licence, if applicable
-#task.constants['ALM_HHWU_TOKEN'] = ALM_HHWU_TOKEN
+#task.constants['QARNOT_SECRET__ALM_HHWU_TOKEN'] = ALM_HHWU_TOKEN
 
 # Create the input bucket and synchronize with a local folder
 input_bucket = conn.create_bucket(INPUT_BUCKET_NAME)
